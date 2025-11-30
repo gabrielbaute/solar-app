@@ -1,0 +1,211 @@
+/* ================================================= */
+/* Archivo style.css */
+/* ================================================= */
+
+/* Estilos base usando Inter Font */
+body { 
+    font-family: 'Inter', sans-serif; 
+    background-color: #f0f4f8; /* Un gris azulado claro (similar a Tailwind gray-100) */
+    padding-bottom: 50px; 
+}
+.container { 
+    max-width: 1200px; 
+    margin: 0 auto; 
+    padding: 20px; 
+}
+
+/* Encabezados */
+h1, h2 { 
+    color: #1a365d; /* Azul oscuro */
+    padding-bottom: 5px; 
+    margin-top: 20px; 
+}
+h1 { border-bottom: none; } 
+h2 { border-bottom: 2px solid #e2e8f0; } /* Separador sutil */
+
+/* Campos de entrada */
+.input-field {
+    padding: 10px; 
+    margin: 5px 0 0 0; 
+    width: 100%; 
+    border: 2px solid #a0aec0; /* Gris medio */
+    border-radius: 8px; 
+    transition: border-color 0.3s; 
+}
+.input-field:focus { 
+    border-color: #3182ce; /* Azul primario */
+    outline: none; 
+    box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.2); /* Anillo de enfoque */
+}
+
+/* Estilos para inputs específicos de la tabla de consumo */
+/* Se mantiene tu estilo para la tabla inyectada por JS */
+#cuerpo-tabla-consumo input[type="number"],
+#cuerpo-tabla-consumo input[type="text"],
+#cuerpo-tabla-consumo select {
+    padding: 6px;
+    height: 36px; /* Aumentado ligeramente para mejor tacto */
+    border-radius: 4px;
+    font-size: 0.875rem;
+    border: 1px solid #cbd5e0;
+    width: 100%; /* Asegura que llene la celda */
+}
+
+/* Botones */
+.calculate-btn, .clear-btn { 
+    padding: 12px 24px; 
+    background-color: #4299e1; 
+    color: white; 
+    border: none; 
+    border-radius: 8px; 
+    cursor: pointer; 
+    margin-top: 15px; 
+    transition: background-color 0.3s, box-shadow 0.2s; 
+    font-weight: bold; 
+    white-space: nowrap;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1); /* Sombra ligera */
+}
+.calculate-btn:hover { background-color: #3182ce; box-shadow: 0 6px 10px rgba(0,0,0,0.15); }
+.clear-btn { background-color: #718096; } /* Color gris neutro */
+.clear-btn:hover { background-color: #4a5568; box-shadow: 0 6px 10px rgba(0,0,0,0.15); }
+
+#pais-resultado { 
+    margin-top: 20px; 
+    font-size: 1.2em; 
+    font-weight: bold; 
+    color: #38a169; 
+    text-align: center; /* Asegura centrado si no se usa Tailwind flex */
+}
+
+/* ================================================= */
+/* Estilos de Tablas de Resultados (Mensual y Anual) */
+/* ================================================= */
+
+/* Contenedor de la tabla mensual */
+#resultado-mensual {
+    margin-bottom: 20px;
+}
+
+#tabla-mensual, #tabla-optima {
+    width: 100%;
+    /* Quitamos el min-width: 1000px y lo gestionamos con overflow-x-auto en el HTML */
+    border-collapse: collapse; /* Usamos collapse para simplificar bordes */
+    font-size: 0.8rem; /* Tamaño de fuente más estándar para tablas */
+    background-color: white; 
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+    border-radius: 8px; 
+    overflow: hidden;
+}
+
+#tabla-optima { 
+    max-width: 600px; 
+    margin: 20px auto; 
+    font-size: 0.9em; 
+}
+
+th, td { 
+    border: 1px solid #e2e8f0; 
+    padding: 8px 4px; /* Ajuste de padding para que quepa más contenido */
+    text-align: center; 
+}
+th { 
+    background-color: #bee3f8; 
+    color: #1a365d; 
+    font-weight: bold; 
+    text-transform: uppercase;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+#tabla-mensual thead th { 
+    background-color: #3182ce; 
+    color: white; 
+    padding: 10px 5px;
+}
+
+/* Destacar celdas importantes en la tabla mensual */
+#tabla-mensual td { 
+    font-weight: normal; 
+    color: #4a5568; 
+}
+#tabla-mensual td:nth-child(5) { background-color: #fefcbf; font-weight: bold; color: #744302; } /* Gd (Amarillo) */
+#tabla-mensual td:nth-child(9), #tabla-mensual td:nth-child(10) { 
+    background-color: #e6fffa; 
+    font-weight: 600;
+} 
+#tabla-mensual td:nth-child(11) {
+    background-color: #a7f3d0; /* Gi final (Verde claro) */
+    font-weight: 900;
+    color: #047857;
+    font-size: 0.9em;
+}
+
+/* Estilos de la tabla anual (ÓPTIMO) */
+#tabla-optima tr:hover:not(.destacado) { 
+    background-color: #ebf8ff; 
+    cursor: pointer; 
+}
+.destacado { 
+    background-color: #ffdb85 !important; 
+    font-weight: 900 !important;
+    color: #a0522d !important; 
+    border: 3px solid #f6ad55 !important;
+} 
+
+.error-msg { 
+    color: #e53e3e; 
+    font-weight: bold; 
+    background-color: #fee2e2;
+}
+
+/* Loading Spinner (Se mantiene) */
+.spinner {
+    border: 4px solid rgba(0, 0, 0, 0.1);
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border-left-color: #4299e1;
+    animation: spin 1s ease infinite;
+    margin: 20px auto;
+    display: none; 
+}
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Estilo para la tabla de consumo (Asegura la legibilidad de la cabecera) */
+#tabla-consumo th {
+    background-color: #e2e8f0 !important;
+    color: #4a5568 !important;
+    font-size: 0.75em; /* Aumentado de 0.65em */
+    padding: 8px 3px;
+    white-space: nowrap;
+}
+
+.chart-container {
+    width: 100%; /* Ajuste a 100% para ocupar el contenedor principal */
+    max-width: 900px;
+    margin: 30px auto; 
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+/* Estilo para la sección de Paneles (Más limpio) */
+#calculo-paneles {
+    margin: 20px 0;
+    padding: 24px; /* Aumentado el padding */
+    background-color: white; /* Cambiado a blanco para consistencia con otros bloques */
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+/* Estilo para que el resultado sea bien visible */
+.resaltado-resultado {
+    font-size: 2.2em; 
+    font-weight: 900;
+    color: #047857; /* Verde oscuro para impacto */
+}

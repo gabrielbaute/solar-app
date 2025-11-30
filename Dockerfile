@@ -23,17 +23,22 @@ FROM nginx:alpine
 RUN addgroup -g 1001 -S appgroup && \
     adduser -u 1001 -S appuser -G appgroup
 
-# Copiar el build generado a la carpeta de Nginx
-COPY --from=build /app/dist /usr/share/nginx/html
+# Crear y dar permisos a los directorios de cache
+RUN mkdir -p /var/cache/nginx /var/run /var/log/nginx && \
+    chown -R appuser:appgroup /var/cache/nginx /var/run /var/log/nginx
 
-# Cambiar permisos de la carpeta
+# Copiar archivos de configuración personalizados de Nginx
+COPY nginx.conf /etc/nginx/nginx.conf
+RUN chown appuser:appgroup /etc/nginx/nginx.conf
+
+COPY --from=build /app/dist /usr/share/nginx/html
 RUN chown -R appuser:appgroup /usr/share/nginx/html
 
 # Cambiar al usuario no root
 USER appuser
 
 # Exponer el puerto
-EXPOSE 80
+EXPOSE 8081
 
 # Comando por defecto
 CMD ["nginx", "-g", "daemon off;"]

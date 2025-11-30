@@ -1,0 +1,11 @@
+version: "3.9"
+
+services:
+  solar-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: solar-app
+    ports:
+      - "8081:80"
+    restart: unless-stopped

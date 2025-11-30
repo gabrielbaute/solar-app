@@ -7,5 +7,5 @@ services:
       dockerfile: Dockerfile
     container_name: solar-app
     ports:
-      - "8081:8081"
+      - "8081:80"
     restart: unless-stopped

@@ -1,5 +1,6 @@
 /**
  * @fileoverview Contiene todas las constantes y funciones matemáticas para el cálculo de radiación solar y dimensionamiento FV.
+ * Incluye las funciones astronómicas, de cálculo de componentes, dimensionamiento On-Grid/Off-Grid y las llamadas a APIs externas.
  */
 
 // === CONSTANTES FÍSICAS Y DE CONVERSIÓN ===
@@ -9,7 +10,7 @@ export const ICS = 1367; // Constante solar en W/m²
 export const FACTOR_G0D = 24 / PI; 
 
 // =================================================================================
-// === FÓRMULAS BÁSICAS  ===
+// === FÓRMULAS BÁSICAS ===
 // =================================================================================
 
 /**
@@ -21,8 +22,6 @@ export const FACTOR_G0D = 24 / PI;
  * @returns {number} La potencia pico requerida en Wp.
  */
 export function dimensionarGenerador(ET_requerida, HPS_min, Cp = 0.8) { 
-    // HPS_min está en kWh/m² día. Cp es adimensional. ET en Wh/día.
-    // El resultado es Wp.
     if (HPS_min <= 0 || Cp <= 0) return 0;
     const Ppico = ET_requerida / (HPS_min * Cp); 
     return Ppico;
@@ -51,7 +50,6 @@ export function calcularRb(phi_rad, delta_rad, omega_s_rad, beta_rad) {
     const denominador = den_term1 + den_term2;
 
     if (denominador === 0) { 
-        // Caso polar o ecuador al mediodía con beta = phi
         return 0; 
     } 
     
@@ -77,16 +75,15 @@ export function calcularRadiacionInclinada(inclinacionRadianes, item, latitudRad
     let Dd_beta = NaN;
     let Gi = NaN;
     
-    // Solo si hay datos válidos de radiación
     if (typeof Gd_kWh === 'number' && Gd_kWh > 0 && G0d_kWh > 0) {
         
         // 1. Componente Directo (Id_beta)
         Id_beta = Id * Rb;
-        if (Id_beta < 0) Id_beta = 0; // No puede ser negativo
+        if (Id_beta < 0) Id_beta = 0; 
         
         // 2. Componente Difuso (Dd_beta) - Modelo de uniformidad/isotropía simplificado (Hayek)
         const Ai = Id / G0d_kWh; 
-        const anisotropyIndex = Math.max(0, Math.min(1, Ai)); // Índice de anisotropía Kt
+        const anisotropyIndex = Math.max(0, Math.min(1, Ai)); 
 
         // Factor de vista al cielo
         const Rd_term = 0.5 * (1 + Math.cos(inclinacionRadianes)); 
@@ -196,12 +193,11 @@ export function calcularComponentesHorizontales(Gd_kWh, G0d_kWh) {
 }
 
 // =================================================================================
-// === FÓRMULAS DE DIMENSIONAMIENTO DEL SISTEMA ===
+// === FÓRMULAS DE DIMENSIONAMIENTO DEL SISTEMA (OFF-GRID) ===
 // =================================================================================
 
 /**
  * 1. Cálculo del número total de paneles por balance energético (NT).
- * NT = ET / (HPS * Pp * PG)
  * @param {number} ET_requerida Energía Total requerida (Wh/día).
  * @param {number} HPS_min Hora Pico Solar mínima (kWh/m² día).
  * @param {number} Pp_panel Potencia pico del panel (Wp).
@@ -209,27 +205,14 @@ export function calcularComponentesHorizontales(Gd_kWh, G0d_kWh) {
  * @returns {number} Número total de paneles (entero, redondeado al alza).
  */
 export function calcularNumeroTotalPaneles(ET_requerida, HPS_min, Pp_panel, Pg_perdidas) {
-    // Usamos: ET en Wh/día, HPS en kWh/m² día, Pp_panel en Wp.
-    
     if (HPS_min <= 0 || Pp_panel <= 0 || Pg_perdidas <= 0) return 0;
-
-    // Fórmula: NT = ET_Wh / (HPS_min * 1000 * Pp_panel_kWp * Pg)
-    // Simplificando la conversión: 
-    // Denominador = HPS_min (kWh/m² día) * Pp_panel (Wp) * Pg 
-    // Necesitamos que el denominador esté en Wh/día por Wp para ser coherente con el numerador (ET_Wh)
-    // Correcto: NT = ET_Wh / (HPS_min * 1000 * Pp_panel/1000 * Pg) 
     const denominador = HPS_min * Pp_panel * Pg_perdidas;
-    
     const Nt = ET_requerida / denominador;
-    
-    // Redondeamos hacia arriba para garantizar la cobertura de la demanda
     return Math.ceil(Nt); 
 }
 
 /**
  * 2. Cálculo del número de paneles en serie (NS).
- * NS = V_BAT / Vp
- * NOTA: Corregido el redondeo a Math.ceil() para asegurar que V_BAT sea alcanzado o superado.
  * @param {number} V_BAT Tension nominal de la batería/banco (Voltios).
  * @param {number} Vp Tension nominal del panel (Voltios).
  * @returns {number} Número de paneles en serie (entero, redondeado al alza).
@@ -237,28 +220,24 @@ export function calcularNumeroTotalPaneles(ET_requerida, HPS_min, Pp_panel, Pg_p
 export function calcularPanelesEnSerie(V_BAT, Vp) {
     if (Vp <= 0) return 0;
     const Ns = V_BAT / Vp;
-    return Math.ceil(Ns); // Asegura que el voltaje sea igual o mayor que V_BAT
+    return Math.ceil(Ns); 
 }
 
 /**
  * 3. Cálculo del número de ramas de paneles en paralelo (NP).
- * NP = NT / NS
- * @param {number} Nt Número total de paneles (resultado de calcularNumeroTotalPaneles).
- * @param {number} Ns Número de paneles en serie (resultado de calcularPanelesEnSerie).
+ * @param {number} Nt Número total de paneles.
+ * @param {number} Ns Número de paneles en serie.
  * @returns {number} Número de ramas en paralelo (entero, redondeado al alza).
  */
 export function calcularRamasEnParalelo(Nt, Ns) {
     if (Ns <= 0) return Nt; 
     const Np = Nt / Ns;
-    
-    // Redondeamos hacia arriba para cubrir todos los paneles Nt
     return Math.ceil(Np);
 }
 
 
 /**
- * 4. Cálculo de la Capacidad Nominal del Banco de Baterías (Cn). (NUEVA FUNCIÓN)
- * Cn (Ah) = (D * ET) / (Vbat * Pd)
+ * 4. Cálculo de la Capacidad Nominal del Banco de Baterías (Cn).
  * @param {number} ET_requeridaWh Consumo diario total (ET) en Wh/día.
  * @param {number} D_dias Días de autonomía (D).
  * @param {number} Vbat_voltios Voltaje nominal del banco de baterías (Vbat) en Voltios.
@@ -267,22 +246,15 @@ export function calcularRamasEnParalelo(Nt, Ns) {
  */
 export function calcularCapacidadNominalBateria(ET_requeridaWh, D_dias, Vbat_voltios, Pd_descarga) {
     if (Vbat_voltios <= 0 || Pd_descarga <= 0) return 0;
-
-    // Energía mínima requerida: Delta E = D * ET_requeridaWh
     const energiaMinimaRequeridaWh = D_dias * ET_requeridaWh;
-
-    // Denominador: Vbat * Pd
     const denominador = Vbat_voltios * Pd_descarga;
-
     const Cn = energiaMinimaRequeridaWh / denominador;
-
-    // Se redondea hacia arriba (ceil) para asegurar la cobertura de la capacidad
     return Math.ceil(Cn);
 }
 
 
 // =================================================================================
-// === FUNCIONES DE API  ===
+// === FUNCIONES DE API ===
 // =================================================================================
 
 // Importante: La clave API está expuesta en el frontend solo para la ejecución en este entorno.
@@ -318,24 +290,41 @@ export async function obtenerPaisPorCoordenadas(lat, lon) {
  * @param {number} lon Longitud.
  * @param {number} dn Día del año (1 a 365).
  * @param {number} maxRetries Número máximo de reintentos.
- * @returns {Promise<string>} Valor de Gd en string (o mensaje de error).
+ * @returns {Promise<number>} Valor de Gd en número (kWh/m² día).
+ * @throws {Error} Si la API falla o no devuelve datos válidos.
  */
 export async function obtenerGdOpenMeteo(lat, lon, dn, maxRetries = 3) {
-    const year = 2024; 
-    const date = new Date(year, 0, dn);
-    const dateString = `${year}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    // Se utiliza un año de referencia fijo (ej: 2023) para simplificar la llamada al archivo histórico
+    const year = 2023; 
+    
+    // Crear la fecha usando el día del año (dn)
+    const date = new Date(year, 0); // Empieza en 1 de enero
+    date.setDate(dn); // Ajusta la fecha al día del año (dn)
+    
+    // Formato YYYY-MM-DD
+    const dateString = date.toISOString().split('T')[0];
     
     const url = `https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}&start_date=${dateString}&end_date=${dateString}&daily=shortwave_radiation_sum&timezone=auto`;
 
-    const MJ_A_KWH = 0.277778; // Conversión de MJ/m² a kWh/m²
+    // Muestra la URL en la consola para depuración
+    console.log("API URL para el día", dn, ":", url); 
+
+    const MJ_A_KWH = 0.277778; // Conversión de Megajulios/m² a kWh/m²
 
     for (let attempt = 0; attempt < maxRetries; attempt++) {
         try {
             const response = await fetch(url);
+            
+            if (!response.ok) {
+                 // Si la respuesta no es 200 (ej: 400 Bad Request, 500 Server Error)
+                 throw new Error(`HTTP Error ${response.status}: ${response.statusText} de Open-Meteo.`);
+            }
+            
             const data = await response.json();
             
             if (data.reason) {
-                return `Error API (OM): ${data.reason}`;
+                // Error reportado por el cuerpo de la respuesta de la API
+                throw new Error(`Error API (OM): ${data.reason}`);
             }
             
             const value_MJ_array = data.daily?.shortwave_radiation_sum;
@@ -344,22 +333,30 @@ export async function obtenerGdOpenMeteo(lat, lon, dn, maxRetries = 3) {
                 const value_MJ = value_MJ_array[0];
                 
                 if (value_MJ !== null && value_MJ !== undefined) {
-                    return (value_MJ * MJ_A_KWH).toFixed(2);
+                    // ¡Éxito! Retornamos el valor numérico en kWh/m²
+                    return value_MJ * MJ_A_KWH; 
                 } else {
-                    return "Datos no disponibles (OM)";
+                    throw new Error("Datos de radiación no disponibles para esta fecha (null/undefined).");
                 }
             } else {
-                if (attempt < maxRetries - 1) throw new Error("Estructura de datos inválida (OM)");
+                 // Si no hay datos, probablemente no hay cobertura para esa ubicación.
+                 throw new Error("No se encontraron datos válidos de radiación en la respuesta (OM).");
             }
 
         } catch (error) {
             if (attempt < maxRetries - 1) {
+                // Loguea el error y reintenta
+                console.warn(`Intento ${attempt + 1} fallido. Reintentando...`, error.message);
                 await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, attempt)));
+            } else {
+                // Después del último intento, relanzar el error definitivo
+                throw new Error(`Fallo definitivo de API: ${error.message}. Consulte la URL en la consola.`);
             }
         }
     }
 
-    return "Error API/Conexión (OM) - Fallo en reintentos";
+    // Código inalcanzable, pero por seguridad
+    throw new Error("Error API/Conexión (OM) - Fallo en reintentos.");
 }
 
 // =================================================================================
@@ -368,31 +365,20 @@ export async function obtenerGdOpenMeteo(lat, lon, dn, maxRetries = 3) {
 
 /**
  * 5. Cálculo de la Corriente generada por el campo fotovoltaico (IG).
- * IG = IpmpP * NP
- * Donde: IpmpP = Pp / VpmpP
- *
  * @param {number} Pp_panel Potencia pico del panel (Wp).
  * @param {number} VpmpP Tension nominal del panel en punto máxima potencia (Voltios).
- * @param {number} Np Número de ramas en paralelo (resultado de calcularRamasEnParalelo).
+ * @param {number} Np Número de ramas en paralelo.
  * @returns {number} Corriente generada IG en Amperios (A).
  */
- export function calcularCorrienteGenerada(Pp_panel, VpmpP, Np) {
+export function calcularCorrienteGenerada(Pp_panel, VpmpP, Np) {
     if (VpmpP <= 0) return 0;
-    
-    // Corriente por rama en paralelo (IpmpP)
     const IpmpP = Pp_panel / VpmpP; 
-    
-    // Corriente generada total (IG)
     const IG = IpmpP * Np;
-    
     return IG;
 }
 
 /**
  * 6. Cálculo de la Corriente consumida por las cargas (IC).
- * IC = PDC / Vbat + PAC / VAC
- *
- * NOTA: Usa 220V por defecto para VAC, siguiendo el texto de la imagen original.
  * @param {number} Pdc Potencia consumida por cargas DC (W).
  * @param {number} Vbat Tension nominal del banco de baterías (Voltios).
  * @param {number} Pac Potencia consumida por cargas AC (W).
@@ -401,30 +387,21 @@ export async function obtenerGdOpenMeteo(lat, lon, dn, maxRetries = 3) {
  */
 export function calcularCorrienteConsumida(Pdc, Vbat, Pac, Vac = 220) {
     if (Vbat <= 0 || Vac <= 0) return 0;
-    
-    // Corriente por cargas DC: PDC / Vbat
     const I_DC = Pdc / Vbat;
-
-    // Corriente por cargas AC: PAC / Vac
     const I_AC = Pac / Vac;
-
     return I_DC + I_AC;
 }
 
 
 /**
  * 7. Cálculo de la Corriente Máxima que debe soportar el Regulador (IR).
- * IR = max(IG, IC)
- *
- * @param {number} IG Corriente generada por los paneles (resultado de calcularCorrienteGenerada).
- * @param {number} IC Corriente consumida por las cargas (resultado de calcularCorrienteConsumida).
+ * @param {number} IG Corriente generada por los paneles.
+ * @param {number} IC Corriente consumida por las cargas.
  * @returns {number} Corriente máxima del regulador IR en Amperios (A).
  */
 export function calcularCorrienteRegulador(IG, IC) {
-    // Se utiliza un factor de seguridad del 25% (1.25) para dimensionar comercialmente.
     const IR_Max = Math.max(IG, IC);
-    
-    // Se redondea al alza para el valor comercial
+    // Factor de seguridad del 25% (1.25)
     return Math.ceil(IR_Max * 1.25); 
 }
 
@@ -434,13 +411,38 @@ export function calcularCorrienteRegulador(IG, IC) {
  * @param {number} factor_seguridad - Factor de seguridad (ej: 1.25)
  * @returns {number} Potencia nominal mínima del inversor en W.
  */
- export function calcularInversorNominal(P_ac_w, factor_seguridad = 1.25) {
+export function calcularInversorNominal(P_ac_w, factor_seguridad = 1.25) {
     if (P_ac_w <= 0) {
         return 0;
     }
-    // La potencia del inversor debe ser ligeramente superior a P_AC
     const P_nominal_W = P_ac_w * factor_seguridad;
-    
-    // Devolvemos la potencia calculada para la selección
     return P_nominal_W; 
+}
+
+
+// =================================================================================
+// === DIMENSIONAMIENTO DEL CABLEADO ===
+// =================================================================================
+
+/**
+ * 8. Cálculo de la Resistencia Óhmica (Rc) y la Potencia Perdida (Pr) por efecto Joule.
+ * @param {number} I_dc Corriente continua que circula (Amperios, A).
+ * @param {number} L_ida Longitud del tendido (solo un sentido) (metros, m).
+ * @param {number} S_seccion Sección transversal del conductor (milímetros cuadrados, mm²).
+ * @param {number} rho_resistividad Resistividad del material (Ohm·mm²/m).
+ * @returns {{Rc: number, Pr: number}} Objeto con la resistencia (Ohm) y la potencia perdida (Vatios, W).
+ */
+export function calcularPerdidasJoule(I_dc, L_ida, S_seccion, rho_resistividad) {
+    if (S_seccion <= 0 || L_ida <= 0 || I_dc <= 0 || rho_resistividad <= 0) {
+        return { Rc: 0, Pr: 0 };
+    }
+    
+    const L_total = L_ida * 2; 
+    const Rc = (rho_resistividad * L_total) / S_seccion;
+    const Pr = Math.pow(I_dc, 2) * Rc;
+
+    return {
+        Rc: Rc,
+        Pr: Pr
+    };
 }

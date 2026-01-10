@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema Fotovoltaico Conectado a Red</title>
+
+    <link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png"> 
+
+    <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="img/favicon-16x16.png">
+
+    <link rel="manifest" href="img/site.webmanifest">
+
+    <link rel="shortcut icon" href="img/favicon.ico">
+
+    
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="index_style.css">
+    
+    <style>
+        /* Estilos base */
+        body { font-family: sans-serif; background-color: #333; color: rgb(20, 20, 20); padding: 20px; }
+        .container { max-width: 900px; margin: 0 auto; background-color: #f8f8fd; padding: 20px; border-radius: 8px; }
+        label { display: block; margin-top: 10px; font-weight: bold; }
+        
+        /* Inputs y botones */
+        input[type="number"], input[type="text"], select, button { padding: 10px; margin-top: 5px; width: 100%; box-sizing: border-box; border-radius: 4px; border: 1px solid #555; background-color: #444; color: white; }
+        button { background-color: #007acc; color: white; cursor: pointer; margin-top: 20px; transition: background-color 0.3s; }
+        button:hover { background-color: #005f99; }
+        
+        #grid-results { border: 1px solid #444; padding: 15px; margin-top: 25px; border-radius: 4px; background-color: #3e3e42; }
+        #grid-results h3 { color: #007acc; margin-top: 0; }
+        #grid-results p { margin: 8px 0; border-bottom: 1px solid #444; padding-bottom: 4px; }
+        .resultado-valor { font-weight: bold; color: #28a745; }
+        
+        .auto-fill-field { background-color: #6a6a1e !important; color: white; }
+
+        /* Estilos específicos para la tabla de dispositivos */
+        .device-row {
+            display: grid;
+            grid-template-columns: 2fr 0.8fr 1fr 0.8fr 1fr 40px; 
+            gap: 10px; 
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .device-header {
+            display: grid; 
+            grid-template-columns: 2fr 0.8fr 1fr 0.8fr 1fr 40px; 
+            gap: 10px; 
+            font-weight: bold; 
+            margin-bottom: 10px; 
+            padding-bottom: 5px; 
+            border-bottom: 1px solid #555;
+            text-align: center;
+        }
+
+        .remove-device {
+            padding: 5px !important;
+            margin: 0 !important;
+            height: 40px;
+            background-color: #dc3545 !important;
+        }
+
+        .info-note {
+            font-size: 0.85em;
+            color: #4dabf7;
+            margin-top: 5px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <nav style="background: rgba(0,0,0,0.9); color: white; padding: 15px 30px; display: flex; align-items: center; position: fixed; width: 100%; top: 0; left: 0; z-index: 1000; backdrop-filter: blur(10px); border-bottom: 2px solid #FFD700; box-sizing: border-box;">
+    
+    <a href="index.html" style="text-decoration: none; color: #FFD700; border: 1px solid #FFD700; padding: 8px 15px; border-radius: 20px; font-size: 0.85rem; font-weight: bold; transition: 0.3s;">
+        ← VOLVER AL INICIO
+    </a>
+
+    <div style="flex-grow: 1; text-align: center; font-weight: bold; font-size: 1.4rem; letter-spacing: 2px; color: #ffffff; margin-right: 120px;">
+        SOLARVEN23
+    </div>
+</nav>
+
+<div style="height: 80px;"></div>
+        <h1> Sistema Fotovoltaico Conectado a la red </h1>
+
+        <form id="grid-calculation-form">
+            
+            <h2>Cálculo de Consumo Eléctrico </h2>
+            <p style="font-size: 0.9em; color: #aaa; margin-bottom: 20px;">
+                Detalla tus dispositivos para obtener el Consumo Anual automáticamente.
+            </p>
+
+            <div id="device-list-container">
+                <div class="device-header">
+                    <span style="text-align: left;">Dispositivo</span>
+                    <span>Tipo</span>
+                    <span>Potencia (W)</span>
+                    <span>Cant.</span>
+                    <span>Horas/Día</span>
+                    <span></span> 
+                </div>
+                
+                <div class="device-row" id="device-template">
+                    <input type="text" class="device-name" placeholder="Ej: Servidor" required>
+                    <select class="device-type">
+                        <option value="AC">AC</option>
+                        <option value="DC">DC</option>
+                    </select>
+                    <input type="number" class="device-power" min="1" placeholder="500" required>
+                    <input type="number" class="device-qty" min="1" value="1" placeholder="1" required>
+                    <input type="number" class="device-hours" min="0" max="24" step="0.1" placeholder="4" required>
+                    <button type="button" class="remove-device">-</button>
+                </div>
+                
+                <div id="devices-container-hook"></div>
+            </div>
+
+            <button type="button" id="add-device-btn" style="background-color: #28a745; margin-top: 10px;">
+                + Añadir Dispositivo
+            </button>
+            
+            <div style="margin-top: 20px;">
+                <label for="consumo-anual">Consumo Energético Anual Calculado (kWh/año)</label>
+                <input type="number" id="consumo-anual" readonly class="auto-fill-field" required placeholder="Consumo total (kWh/año)">
+            </div>
+            
+            <h2 style="margin-top: 30px;">Datos Geográficos</h2>
+            
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+                <div>
+                    <label for="latitud-grid">Latitud</label>
+                    <input type="number" id="latitud-grid" step="any" placeholder="Ej: 10.19">
+                </div>
+                <div>
+                    <label for="longitud-grid">Longitud</label>
+                    <input type="number" id="longitud-grid" step="any" placeholder="Ej: -67.93">
+                </div>
+                <div>
+                    <label for="inclinacion-grid">Inclinación Óptima (°)</label>
+                    <input type="number" id="inclinacion-grid" readonly class="auto-fill-field" placeholder="Calculado">
+                </div>
+            </div>
+
+            <div>
+                <label for="hsp-anual">HSP Anual (h/año)</label>
+                <input type="number" id="hsp-anual" min="1000" step="any" class="auto-fill-field" placeholder="Se llena automáticamente">
+            </div>
+
+            <h2>Componentes del Sistema</h2>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div>
+                    <label for="rendimiento-sistema">Rendimiento (%)</label>
+                    <input type="number" id="rendimiento-sistema" required min="70" max="95" value="80">
+                </div>
+                <div>
+                    <label for="potencia-modulo">Potencia Módulo (Wp)</label>
+                    <input type="number" id="potencia-modulo" required min="300" step="5" value="550">
+                </div>
+            </div>
+
+            <h2 style="margin-top: 30px;">Interconexión a la Red </h2>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div>
+                    <label for="voltaje-red">Voltaje de la Red (VAC)</label>
+                    <select id="voltaje-red">
+                        <option value="120">120 V (Monofásico)</option>
+                        <option value="208">208 V (Bifásico/Trifásico)</option>
+                        <option value="240">240 V (Fase-Fase)</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="distancia-ac">Distancia al Tablero (m)</label>
+                    <input type="number" id="distancia-ac" value="10" min="1" step="1">
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr; gap: 10px;">
+                <div>
+                    <label for="caida-tension-max">Máx. Caída de Tensión Permitida (%)</label>
+                    <select id="caida-tension-max">
+                        <option value="1">1% (Alta eficiencia)</option>
+                        <option value="2" selected>2% (Estándar recomendado)</option>
+                        <option value="3">3% (Límite normativo)</option>
+                    </select>
+                </div>
+            </div>
+            
+            <p class="info-note">La interconexión requiere protección Anti-Isla y Medidor Bidireccional según estándar IEEE 1547.</p>
+
+            <button type="submit">Calcular Sistema Conectado a la Red</button>
+
+        </form>
+
+        <div id="grid-results">
+            <h3>Resultados del Dimensionamiento:</h3>
+            <p>Potencia Pico Requerida (DC): <span id="resultado-ppico" class="resultado-valor">---</span> Wp</p>
+            <p>Número de Módulos (Nt): <span id="resultado-nmodulos" class="resultado-valor">---</span></p>
+            <p>Potencia Total Instalada: <span id="resultado-ptotal" class="resultado-valor">---</span> Wp</p>
+            <p>Potencia Mínima Inversor (AC): <span id="resultado-pinversor" class="resultado-valor">---</span> W</p>
+            <p>Protección AC Sugerida (Breaker): <span id="resultado-breaker" class="resultado-valor">---</span> A</p>
+            <p>Sección Sugerida de Cable AC: <span id="resultado-cable-ac" class="resultado-valor">---</span> mm²</p>
+        </div>
+
+        <div class="mt-10 p-4 text-center"> 
+            <button id="btn-descargar-reporte-grid" onclick="generarReporteGrid()" class="bg-indigo-600 text-white px-8 py-3 rounded-xl hover:bg-indigo-700 transition duration-300 shadow-2xl font-bold text-xl">
+                DESCARGAR REPORTE (PDF)
+            </button>
+        </div>
+        
+        
+    </div>
+
+    <script type="module" src="js/main_grid_script.js"></script>
+    <script type="module" src="js/report_generator_grid.js"></script>
+
+</body>
+</html>

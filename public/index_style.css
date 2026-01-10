@@ -1,0 +1,117 @@
+/* --- Estilos para la página de Selección de Sistema (Menu) --- */
+
+body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    text-align: center;
+
+    /* Fondo con imagen */
+    background-image: url('../img/LOGO.jpg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    position: relative;
+
+    /* Animación de entrada */
+    animation: fadeIn 1.5s ease-in-out;
+}
+
+/* Overlay semitransparente para oscurecer la imagen y mejorar legibilidad */
+body::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.4); /* negro con 40% transparencia */
+    z-index: 0; /* queda detrás del contenido */
+}
+
+/* Contenedor principal */
+.container {
+    background: rgba(255, 255, 255, 0.9); /* blanco con transparencia */
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    max-width: 800px;
+    width: 90%;
+    position: relative;
+    z-index: 1; /* encima del overlay */
+
+    /* Animación de entrada */
+    animation: slideUp 1.2s ease-out;
+}
+
+h1 {
+    color: #004d40;
+    margin-bottom: 30px;
+    font-size: 1.8em;
+}
+
+.button-group {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+.button {
+    padding: 20px 30px;
+    font-size: 1.2em;
+    text-decoration: none;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.1s ease;
+    font-weight: bold;
+    text-transform: uppercase;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.autonomous {
+    background-color: #ff6f00;
+}
+
+.grid-tie {
+    background-color: #00796b;
+}
+
+.button:hover {
+    transform: translateY(-2px);
+    opacity: 0.9;
+}
+
+.note {
+    margin-top: 30px;
+    font-size: 0.9em;
+    color: #333;
+    line-height: 1.5;
+}
+
+/* Adaptación para pantallas medianas/grandes */
+@media (min-width: 600px) {
+    .button-group {
+        flex-direction: row;
+        justify-content: space-around;
+    }
+    .button {
+        width: 45%;
+    }
+}
+
+/* --- Animaciones --- */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from { transform: translateY(50px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+

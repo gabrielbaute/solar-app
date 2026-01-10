@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guía de Usuario - SOLARVEN23</title>
+    
+    <link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png"> 
+    <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="img/favicon-16x16.png">
+    <link rel="manifest" href="img/site.webmanifest">
+    <link rel="shortcut icon" href="img/favicon.ico">
+    <style>
+        body {
+            background: #121212;
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .btn-back {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            text-decoration: none;
+            color: #FFD700;
+            border: 1px solid #FFD700;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        .btn-back:hover { background: #FFD700; color: #000; }
+
+        .header { text-align: center; margin-top: 80px; padding: 0 20px; }
+        .header h1 { color: #FFD700; font-size: 2.5rem; margin-bottom: 10px; text-transform: uppercase; }
+        .header p { opacity: 0.8; font-size: 1.1rem; }
+
+        .mindmap {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 30px;
+            max-width: 1200px;
+            padding: 40px 20px;
+            position: relative;
+        }
+
+        /* Nodo Central */
+        .node-center {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .core {
+            background: #FFD700;
+            color: #000;
+            padding: 20px 50px;
+            border-radius: 50px;
+            font-weight: 900;
+            font-size: 1.5rem;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.4);
+        }
+
+        /* Ramas */
+        .branch {
+            background: #1e1e1e;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-radius: 20px;
+            padding: 25px;
+            width: 350px;
+            transition: 0.4s;
+        }
+
+        .branch:hover {
+            transform: translateY(-10px);
+            border-color: #FFD700;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .branch h2 {
+            font-size: 1.3rem;
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .tag-off { color: #ff7300; }
+        .tag-on { color: #007acc; }
+
+        .steps { list-style: none; padding: 0; margin: 20px 0 0; }
+        .steps li {
+            margin-bottom: 15px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            padding-left: 30px;
+            position: relative;
+        }
+
+        .steps li::before {
+            content: "●";
+            position: absolute;
+            left: 0;
+            color: #FFD700;
+        }
+
+        .steps b { color: #FFD700; display: block; margin-bottom: 2px; }
+
+        footer { margin-top: auto; padding: 40px; opacity: 0.4; font-size: 0.8rem; }
+    </style>
+</head>
+<body>
+
+    <a href="index.html" class="btn-back">← VOLVER AL MENÚ</a>
+
+    <div class="header">
+        <h1>¿Como Funciona?</h1>
+        <p>Entiende cómo SOLARVEN23 procesa tus datos</p>
+    </div>
+
+    <div class="mindmap">
+        
+        <div class="node-center">
+            <div class="core">SOLARVEN23</div>
+        </div>
+
+        <div class="branch">
+            <h2 class="tag-off"> Sistema Autónomo </h2>
+            <ul class="steps">
+                <li>
+                    <b>Auditoría de Carga (Wh/día)</b>
+                    Lista tus dispositivos, potencia y horas. Ajusta la eficiencia de batería y el inversor para obtener el consumo real.
+                </li>
+                <li>
+                    <b>Radiación y Astronomía</b>
+                    Ingresa Latitud, Longitud y día de referencia. El sistema calculará la HSP mínima para el peor mes del año.
+                </li>
+                <li>
+                    <b>Dimensionamiento de Banco</b>
+                    Define los días de autonomía y profundidad de descarga. Obtendrás la capacidad nominal (Cn) en Ah.
+                </li>
+                <li>
+                    <b>Configuración de Matriz</b>
+                    Ingresa datos del panel para obtener el arreglo Ns (Serie) y Np (Paralelo) exacto.
+                </li>
+            </ul>
+        </div>
+
+        <div class="branch">
+            <h2 class="tag-on"> Conectado a Red </h2>
+            <ul class="steps">
+                <li>
+                    <b>Estimación Anual (kWh/año)</b>
+                    Ingresa tus cargas para proyectar el consumo total del año. Aquí no dependemos de baterías.
+                </li>
+                <li>
+                    <b>Análisis Geográfico Anual</b>
+                    El sistema utiliza la HSP anual promedio para maximizar la inyección a la red eléctrica pública.
+                </li>
+                <li>
+                    <b>Interconexión AC</b>
+                    Selecciona el voltaje (120/208/240V) y la distancia al tablero para calcular la caída de tensión.
+                </li>
+                <li>
+                    <b>Protecciones y Cableado</b>
+                    Obtén el calibre de cable (mm²) y la capacidad del Breaker sugerido según la potencia del inversor.
+                </li>
+            </ul>
+        </div>
+
+        <div class="branch">
+            <h2 style="color: #28a745;"> Entrega de Resultados</h2>
+            <ul class="steps">
+                <li>
+                    <b>Validación Técnica</b>
+                    Verifica que los campos (en amarillo) se hayan completado antes de generar el reporte.
+                </li>
+                <li>
+                    <b>Reporte PDF</b>
+                    Genera un documento profesional con todos los cálculos, gráficas de irradiancia y especificaciones de componentes.
+                </li>
+            </ul>
+        </div>
+
+    </div>
+
+    <footer>
+        © 2025 SOLARVEN23 - Basado en estándares IEEE 1547 y normativas fotovoltaicas.
+    </footer>
+
+</body>
+</html>

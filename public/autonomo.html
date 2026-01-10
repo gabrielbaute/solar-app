@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema Fotovoltaico Autónomo</title>
+    
+    <link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png"> 
+    <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="img/favicon-16x16.png">
+    <link rel="manifest" href="img/site.webmanifest">
+    <link rel="shortcut icon" href="img/favicon.ico">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+    
+    <link rel="stylesheet" href="index_style.css"> 
+    
+    <style>
+        body { 
+            font-family: 'Inter', sans-serif; 
+            color: #333; 
+        }
+        .container { 
+            max-width: 1200px; 
+            margin: 0 auto; 
+            padding: 20px; 
+            
+            background: rgba(255, 255, 255, 0.9); /* Blanco con 90% de opacidad */
+            
+            /* Aplicar animación de subida (slideUp) del menú */
+            position: relative;
+            z-index: 1; 
+            animation: slideUp 1.2s ease-out;
+        }
+
+        /* ---------------------------------------------------------------------------------- */
+        /* ESTILOS DE TAILWIND*/
+        /* ---------------------------------------------------------------------------------- */
+        input[type="number"], input[type="text"], select { transition: border-color 0.2s, box-shadow 0.2s; }
+        input[type="number"]:focus, input[type="text"]:focus, select:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3); }
+        .resaltado-resultado { font-size: 2.25rem; color: #10b981; font-weight: 700; }
+        .destacado { background-color: #ecfdf5; font-weight: bold; }
+        #tabla-mensual, #tabla-optima { 
+            width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.85rem;
+        }
+        #tabla-mensual th, #tabla-mensual td, 
+        #tabla-optima th, #tabla-optima td { 
+            border: 1px solid #e5e7eb; padding: 8px 10px; text-align: center;
+        }
+        #tabla-mensual th, #tabla-optima th { background-color: #f3f4f6; color: #1f2937; }
+        .error-msg { color: #dc2626; font-weight: bold; }
+        .sticky-header { position: sticky; top: 0; z-index: 10; background-color: white; }
+
+        /* --- NUEVOS ESTILOS PARA TOOLTIPS --- */
+        .tooltip { position: relative; display: inline-block; cursor: help; margin-left: 4px; color: #3b82f6; }
+        .tooltip .tooltiptext {
+            visibility: hidden; width: 220px; background-color: #1f2937; color: #fff;
+            text-align: center; border-radius: 6px; padding: 8px; position: absolute;
+            z-index: 100; bottom: 125%; left: 50%; transform: translateX(-50%);
+            opacity: 0; transition: opacity 0.3s; font-size: 0.75rem; font-weight: normal; line-height: 1.2;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .tooltip:hover .tooltiptext { visibility: visible; opacity: 1; }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <nav style="background: rgba(0,0,0,0.9); color: white; padding: 15px 30px; display: flex; align-items: center; position: fixed; width: 100%; top: 0; left: 0; z-index: 1000; backdrop-filter: blur(10px); border-bottom: 2px solid #FFD700; box-sizing: border-box;">
+    
+    <a href="index.html" style="text-decoration: none; color: #FFD700; border: 1px solid #FFD700; padding: 8px 15px; border-radius: 20px; font-size: 0.85rem; font-weight: bold; transition: 0.3s;">
+        ← VOLVER AL INICIO
+    </a>
+
+    <div style="flex-grow: 1; text-align: center; font-weight: bold; font-size: 1.4rem; letter-spacing: 2px; color: #ffffff; margin-right: 120px;">
+        SOLARVEN23
+    </div>
+</nav>
+
+<div style="height: 80px;"></div>
+
+<div style="margin-top: 80px;"></div>
+    <div class="container bg-white shadow-2xl rounded-xl p-6 md:p-10">
+        <header class="text-center mb-10">
+            <h1 class="text-4xl font-extrabold text-blue-700">Sistema Fotovoltaico Autónomo</h1>
+            <p class="text-gray-600 mt-2">Herramienta de cálculo astronómico, radiación solar y consumo energético.</p>
+        </header>
+
+        <div id="loading-spinner" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50 hidden">
+            <div class="flex flex-col items-center justify-center"> 
+                <div class="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500"></div>
+                <p class="text-white mt-4 text-xl font-semibold">
+                    Calculando... (Puede tardar por las consultas API)
+                </p>
+            </div>
+        </div>
+
+        <main class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <section class="lg:col-span-1 p-6 bg-gray-50 rounded-lg shadow-inner border-t-4 border-yellow-500">
+                
+                <h2 class="text-xl font-semibold mt-4 mb-3 text-gray-800 text-center">Dispositivos y Consumo</h2>
+                
+                <div class="overflow-x-auto border rounded-lg">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-200">
+                            <tr>
+                                <th class="px-3 py-2 text-xs font-medium text-gray-600 uppercase">Tipo</th>
+                                <th class="px-3 py-2 text-xs font-medium text-gray-600 uppercase">Dispositivo</th>
+                                <th class="px-3 py-2 text-xs font-medium text-gray-600 uppercase">Potencia (W)</th>
+                                <th class="px-3 py-2 text-xs font-medium text-gray-600 uppercase">Tiempo (h/día)</th>
+                                <th class="px-3 py-2 text-xs font-medium text-gray-600 uppercase">Cantidad</th>
+                                <th class="px-3 py-2 text-xs font-medium text-gray-600 uppercase">Consumo Diario (Wh)</th>
+                                <th class="px-3 py-2 text-xs font-medium text-gray-600 uppercase">Eliminar</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cuerpo-tabla-consumo" class="bg-white divide-y divide-gray-200">
+                        </tbody>
+                    </table>
+                </div>
+            
+                <div class="flex justify-start items-center mt-4">
+                    <button onclick="agregarFilaConsumo()" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition duration-200 shadow-md">
+                        + AGREGAR DISPOSITIVO
+                    </button>
+                </div>
+            
+                <div class="grid grid-cols-2 gap-4 mt-4 mb-4"> 
+                    <div>
+                        <label class="block text-gray-700 font-semibold ">
+                            Eficiencia de Batería: β<sub>BAT</sub>
+                            <span class="tooltip">ⓘ<span class="tooltiptext">Pérdidas de energía durante el proceso de carga y descarga de la batería (Típico: 0.90).</span></span>
+                        </label>
+                        <input type="number" id="etaBat" value="0.90" min="0.01" max="1.0" step="0.01" class="p-2 border rounded w-full" oninput="calcularConsumoTotal()">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-gray-700 font-semibold">
+                            Eficiencia del Inversor:β<sub>INV</sub>
+                            <span class="tooltip">ⓘ<span class="tooltiptext">Rendimiento del equipo al convertir corriente continua (DC) en alterna (AC).</span></span>
+                        </label>
+                        <input type="number" id="etaInv" value="0.95" min="0.01" max="1.0" step="0.01" class="p-2 border rounded w-full" oninput="calcularConsumoTotal()">
+                    </div>
+                </div>
+                <div class="p-4 bg-blue-100 border border-blue-300 rounded-lg text-center">
+                    <p class="text-lg font-semibold text-blue-800">Consumo Diario Total E<sub>T</sub>:</p>
+                    <p id="consumo-total-resultado" class="text-2xl font-extrabold text-blue-900">0 Wh/día</p>
+                </div>
+            </section>
+            
+            <section class="lg:col-span-2 p-6 bg-gray-50 rounded-lg shadow-inner border-t-4 border-blue-500">
+                <h2 class="text-2xl font-bold mb-4 text-gray-800 text-center"> Cálculos Astronómicos y Radiación Solar</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div>
+                        <label class="block text-gray-700 font-semibold">Latitud ϕ:</label>
+                        <input type="number" id="latitud" step="any" class="p-2 border rounded w-full" placeholder="Ej: 10.4">
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-semibold">Longitud λ:</label>
+                        <input type="number" id="longitud" step="any" class="p-2 border rounded w-full" placeholder="Ej: -66.9">
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-semibold">Día de Referencia d<sub>n</sub>:</label>
+                        <input type="number" id="diaDelMes" min="1" max="31" class="p-2 border rounded w-full" placeholder="Ej: 17">
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center mb-6">
+                    <button id="btn-calcular" onclick="ejecutarCalculos()" class="bg-red-500 text-white px-6 py-3 rounded-lg hover:bg-red-600 transition duration-200 shadow-lg font-bold flex-grow mr-2">
+                        EJECUTAR CÁLCULOS SOLARES
+                    </button>
+                    <button onclick="limpiarFormulario()" class="bg-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-400 transition duration-200 shadow-lg">
+                        LIMPIAR
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 p-4 bg-indigo-50 rounded-lg border-l-4 border-indigo-300">
+                    <div id="pais-resultado" class="md:col-span-2 text-lg font-semibold text-indigo-800"></div>
+                    <div class="text-right">
+                        <p class="text-sm text-gray-600">Ángulo de Inclinación de Referencia β:</p>
+                        <strong id="inclinacion-display" class="text-2xl font-extrabold text-indigo-600">--</strong><span class="text-lg text-indigo-600">°</span>
+                    </div>
+                </div>
+
+                <h3 class="text-xl font-bold mt-6 mb-3 text-gray-800">Gráfico de Irradiancia G<sub>i</sub></h3>
+                <div class="w-full h-80 bg-gray-100 p-4 rounded-lg shadow-inner">
+                    <canvas id="radiacionChart"></canvas>
+                </div>
+
+                <h3 class="text-xl font-bold mt-8 mb-3 text-gray-800">Tabla Mensual Detallada (Irradiancia en β de referencia)</h3>
+                <div id="resultado-mensual" class="overflow-x-auto max-h-96 border rounded-lg shadow-md">
+                    </div>
+                
+                <h3 class="text-xl font-bold mt-8 mb-3 text-gray-800">Tabla Anual por Inclinación β ángulo Óptimo</h3>
+                <div id="resultado-anual" class="overflow-x-auto border rounded-lg shadow-md">
+                    </div>
+            </section>
+        </main>
+
+        <section class="mt-12 p-8 bg-gray-100 rounded-xl shadow-2xl border-t-8 border-green-500">
+            <h2 class="text-3xl font-extrabold mb-6 text-green-700 text-center">Componentes</h2>
+            
+
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                <div class="p-3 bg-white rounded-lg shadow-lg col-span-1">
+                    <label class="block text-xs font-medium text-gray-600">Energía Total (E<sub>T</sub> kWh/día):</label>
+                    <input type="number" id="input-et" value="" min="0.01" step="any" class="mt-1 p-2 border rounded w-full bg-yellow-50 font-bold text-base" readonly>
+                </div>
+                
+                <div class="p-3 bg-white rounded-lg shadow-lg col-span-1">
+                    <label class="block text-xs font-medium text-gray-600">
+                        HSP Mínima (G<sub>i</sub>):
+                        <span class="tooltip">ⓘ<span class="tooltiptext">Horas Solar Pico: Cantidad de horas con radiación de 1000 W/m² que producirían la misma energía diaria.</span></span>
+                    </label>
+                    <input type="number" id="input-hps" value="" min="0.01" step="any" class="mt-1 p-2 border rounded w-full bg-yellow-50 font-bold text-base" readonly>
+                </div>
+
+                <div class="p-3 bg-white rounded-lg shadow-lg col-span-1">
+                    <label class="block text-xs font-medium text-gray-600">Inclinación Óptima (β°):</label>
+                    <input type="number" id="input-inclinacion" value="" min="0" step="any" class="mt-1 p-2 border rounded w-full bg-yellow-50 font-bold text-base" readonly>
+                </div>
+
+                <div class="p-3 bg-white rounded-lg shadow-lg col-span-1">
+                    <label class="block text-xs font-medium text-gray-600">
+                        Orientación (Azimut °):
+                        <span class="tooltip">ⓘ<span class="tooltiptext">Orientación respecto al Sur (0°). En el hemisferio Norte, los paneles deben mirar al Sur.</span></span>
+                    </label>
+                    <input type="number" id="input-azimut" value="" min="0" max="180" step="1" class="mt-1 p-2 border rounded w-full bg-yellow-50 font-bold text-base" readonly>
+                </div>
+                <div class="p-3 bg-white rounded-lg shadow-lg col-span-1">
+                    <label class="block text-xs font-medium text-gray-600">Potencia Pico Panel (P<sub>p</sub> Wp):</label>
+                    <input type="number" id="input-pp" value="" min="1" step="1" class="mt-1 p-2 border rounded w-full font-bold text-base" placeholder="Ej: 450" oninput="calcularNumeroPaneles()">
+                </div>
+                
+                <div class="p-3 bg-white rounded-lg shadow-lg col-span-1">
+                    <label class="block text-xs font-medium text-gray-600">
+                        Factor Pérdidas (P<sub>G</sub>):
+                        <span class="tooltip">ⓘ<span class="tooltiptext">Pérdidas por suciedad, temperatura y cableado (Valor usual: 0.8).</span></span>
+                    </label>
+                    <input type="number" id="input-pg" value="" min="0.01" max="1.0" step="0.01" class="mt-1 p-2 border rounded w-full font-bold text-base" placeholder="Ej: 0.8" oninput="calcularNumeroPaneles()">
+                </div>
+
+                <div class="p-3 bg-white rounded-lg shadow-lg col-span-1">
+                    <label class="block text-xs font-medium text-gray-600">Voltaje Batería (V<sub>BAT</sub>):</label>
+                    <input type="number" id="input-vbat" value="" min="12" step="12" class="mt-1 p-2 border rounded w-full font-bold text-base" placeholder="Ej: 48" oninput="calcularNumeroPaneles(); calcularBaterias()">
+                </div>
+
+                <div class="p-3 bg-white rounded-lg shadow-lg col-span-1">
+                    <label class="block text-xs font-medium text-gray-600">Voltaje Nominal Panel (V<sub>P</sub>):</label>
+                    <input type="number" id="input-vp" value="" min="12" step="1" class="mt-1 p-2 border rounded w-full font-bold text-base" placeholder="Ej: 24" oninput="calcularNumeroPaneles()">
+                </div>
+
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-6">
+                <div class="flex flex-col">
+                    <h3 class="text-2xl font-bold text-purple-700 mb-4 border-b pb-2">Generador FV (Paneles)</h3>
+                    <div class="flex items-start justify-between">
+                        <div class="w-1/2 flex flex-col items-center mr-4">
+                            <button onclick="calcularNumeroPaneles()" class="bg-purple-600 text-white px-4 py-2 rounded-xl hover:bg-purple-700 transition duration-300 shadow-xl font-bold text-lg w-full mb-4">
+                                CALCULAR PANELES
+                            </button>
+                            <div class="p-4 bg-purple-100 rounded-xl border border-purple-300 text-center w-full">
+                                <p class="text-xl font-semibold text-purple-800">Paneles Requeridos (N<sub>T</sub>):</p>
+                                <p id="resultado-paneles" class="resaltado-resultado text-purple-900">0</p>
+                            </div>
+                        </div>
+                        <div id="resultado-matriz" class="p-4 bg-white rounded-xl border border-gray-300 text-center flex-grow w-1/2 shadow-inner">
+                            <p class="text-gray-500 font-semibold mt-2 text-sm">Ingrese la tensión de la batería y del panel para ver la configuración de serie (N<sub>S</sub>) y paralelo (N<sub>P</sub>).</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex flex-col">
+                    <h3 class="text-2xl font-bold text-teal-700 mb-4 border-b pb-2">Banco de Almacenamiento (Baterías)</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        <div class="p-3 bg-white rounded-lg shadow-lg">
+                            <label class="block text-xs font-medium text-gray-600">Tecnología:</label>
+                            <select id="select-tecnologia" class="mt-1 p-2 border rounded w-full  text-base text-gray-700" onchange="ajustarPd()">
+                                <option value="0.5">Plomo-Ácido (50% Pd)</option>
+                                <option value="0.7">Gel / AGM (70% Pd)</option>
+                                <option value="0.9">Litio / LFP (90% Pd)</option>
+                                <option value="custom">Personalizado</option>
+                            </select>
+                        </div>
+                        <div class="p-3 bg-white rounded-lg shadow-lg">
+                            <label class="block text-xs font-medium text-gray-600">Días Autonomía (D):</label>
+                            <input type="number" id="input-autonomia" value="2" min="1" step="1" class="mt-1 p-2 border rounded w-full font-bold text-base" placeholder="Ej: 2" oninput="calcularBaterias()">
+                        </div>
+                        <div class="p-3 bg-white rounded-lg shadow-lg">
+                            <label class="block text-xs font-medium text-gray-600">
+                                Prof. Descarga (P<sub>d</sub>):
+                                <span class="tooltip">ⓘ<span class="tooltiptext">Capacidad máxima utilizable de la batería para evitar su degradación prematura.</span></span>
+                            </label>
+                            <input type="number" id="input-pd" value="0.5" min="0.01" max="1.0" step="0.01" class="mt-1 p-2 border rounded w-full font-bold text-base" placeholder="Ej: 0.5" oninput="calcularBaterias()">
+                        </div>
+
+                    </div>
+                    
+                    <button onclick="calcularBaterias()" class="bg-teal-600 text-white px-4 py-2 rounded-xl hover:bg-teal-700 transition duration-300 shadow-xl font-bold text-lg w-full mb-4">
+                        CALCULAR BATERÍAS
+                    </button>
+                    
+                    <div id="resultado-baterias" class="p-4 bg-white rounded-xl border border-gray-300 text-center flex-grow shadow-inner h-full">
+                        <p class="text-gray-500 font-semibold mt-2">Ingrese los valores de autonomía y P<sub>d</sub> para calcular la capacidad nominal requerida (C<sub>n</sub>).</p>
+                    </div>
+                    
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
+                
+                <div>
+                    <h3 class="text-2xl font-bold text-orange-700 mb-4 border-b pb-2">Regulador de Carga (MPPT/PWM)</h3>
+                    <div id="resultado-regulador" class="p-6 bg-orange-50 rounded-xl border-2 border-orange-300 shadow-md">
+                        <p class="text-gray-500 font-semibold text-center">El resultado de la Corriente del Regulador (I<sub>R</sub>) aparecerá aquí al completar el dimensionamiento del Generador.</p>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="text-2xl font-bold text-blue-700 mb-4 border-b pb-2">Inversor (DC/AC)</h3>
+                    <div id="resultado-inversor" class="p-6 bg-blue-50 rounded-xl border-2 border-blue-300 shadow-md">
+                        <p class="text-gray-500 font-semibold text-center">La Potencia Nominal Requerida del Inversor aparecerá aquí al ingresar el Voltaje de Batería y las cargas AC.</p>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="text-2xl font-bold text-yellow-700 mb-4 border-b pb-2">Cableado DC (Eficiencia de Conexión)</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-2 mb-4">
+                        <div class="col-span-1 p-2 bg-white rounded-lg shadow-sm">
+                            <label class="block text-xs font-medium text-gray-600">Distancia cables (m):</label>
+                            <input type="number" id="input-longitud-cable" min="0.1" step="0.1" class="mt-1 py-1 border rounded w-full text-base" oninput="calcularCableadoFinal()">
+                        </div>
+                        <div class="col-span-1 p-2 bg-white rounded-lg shadow-sm">
+                            <label class="block text-xs font-medium text-gray-600">Grosor (Sección):</label>
+                            <select id="input-seccion-cable" class="mt-1 py-1 border rounded w-full text-base text-gray-700" onchange="calcularCableadoFinal()">
+                                <option value="" disabled selected>...</option>
+                                <option value="1.5">1.5 mm²</option>
+                                <option value="2.5">2.5 mm²</option>
+                                <option value="4">4 mm²</option>
+                                <option value="6">6 mm²</option>
+                                <option value="10">10 mm²</option>
+                                <option value="16">16 mm²</option>
+                                <option value="25">25 mm²</option>
+                                <option value="35">35 mm²</option>
+                                <option value="50">50 mm²</option>
+                            </select>
+                        </div>
+                        <div class="col-span-1 p-2 bg-white rounded-lg shadow-sm">
+                            <label class="block text-xs font-medium text-gray-600">Material:</label>
+                            <select id="input-resistividad" class="mt-1 py-1 border rounded w-full text-base" onchange="calcularCableadoFinal()">
+                                <option value="" disabled selected>...</option>
+                                <option value="0.0172">Cobre (Cu)</option>
+                                <option value="0.0282">Aluminio (Al)</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div id="resultado-cableado" class="p-6 bg-yellow-50 rounded-xl border-2 border-yellow-300 shadow-md">
+                        <p class="text-gray-500 font-semibold text-center">Indique la distancia, el grosor y una Corriente de Diseño válida I<sub>G</sub> para calcular la eficiencia.</p>
+                    </div>
+                </div>  
+            </div>
+        </section>
+
+        <div class="mt-10 p-4 border-t border-gray-300 text-center">
+            <button id="btn-descargar-reporte" class="bg-indigo-600 text-white px-8 py-3 rounded-xl hover:bg-indigo-700 transition duration-300 shadow-2xl font-bold text-xl">
+                DESCARGAR REPORTE COMPLETO (PDF)
+            </button>
+        </div>
+        
+    </div>
+    
+    <script type="module" src="js/utils_consumption.js"></script>
+    <script type="module" src="js/solar_formulas.js"></script>
+    <script type="module" src="js/main_script.js"></script>
+    <script type="module" src="js/report_generator.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Lógica para el selector de tecnología de batería
+            window.ajustarPd = function() {
+                const select = document.getElementById('select-tecnologia');
+                const inputPd = document.getElementById('input-pd');
+                if (select.value !== "custom") {
+                    inputPd.value = select.value;
+                    // Disparamos manualmente el evento oninput para que se recalculen las baterías si la función existe
+                    if (typeof calcularBaterias === 'function') {
+                        calcularBaterias();
+                    } else {
+                        inputPd.dispatchEvent(new Event('input'));
+                    }
+                }
+            };
+        });
+    </script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+</body>
+</html>

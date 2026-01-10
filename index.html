@@ -3,49 +3,133 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dimensionamiento Solar | Elige el Sistema</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Selección de Sistema Fotovoltaico - SOLARVEN23</title>
+    
+    <link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png"> 
+    <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="img/favicon-16x16.png">
+    <link rel="manifest" href="img/site.webmanifest">
+    <link rel="shortcut icon" href="img/favicon.ico">
+    
+    <link rel="stylesheet" href="index_style.css">
+
     <style>
-        /* Estilo personalizado si es necesario, aunque Tailwind hace la mayor parte */
-        .shadow-2xl-custom {
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        /* Estilos para eliminar la opacidad y dar brillo */
+        .nav-link:hover {
+            background-color: #FFD700;
+            color: #000 !important;
+            box-shadow: 0 0 15px rgba(255, 214, 0, 0.6);
+        }
+
+        .benefit-card svg {
+            transition: transform 0.3s ease;
+            filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.5)); /* Brillo en iconos */
+        }
+
+        .benefit-card:hover svg {
+            transform: scale(1.1);
+            filter: drop-shadow(0 0 12px rgba(255, 215, 0, 0.8));
+        }
+
+        /* Mejora de legibilidad en tarjetas blancas */
+        .info-card {
+            background: #ffffff !important; /* Blanco sólido para quitar lo opaco */
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .info-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.7) !important;
         }
     </style>
 </head>
-<body class="bg-gray-50 min-h-screen flex items-center justify-center p-4">
-
-    <div class="w-full max-w-3xl bg-white p-10 rounded-2xl shadow-2xl-custom border-t-4 border-yellow-500">
-        <header class="text-center mb-10">
-            <h1 class="text-5xl font-extrabold text-gray-900 leading-tight">
-                ☀️ Dimensionamiento Solar: Elige tu Proyecto
-            </h1>
-            <p class="mt-3 text-xl text-gray-600">Selecciona el tipo de sistema que deseas dimensionar.</p>
-        </header>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-            
-            <a href="home.html" 
-               class="flex flex-col items-center justify-center p-8 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-xl transition duration-300 transform hover:scale-[1.02] border-b-8 border-blue-800">
-                <span class="text-5xl mb-3">🔋</span>
-                <h2 class="text-2xl font-bold mb-1">Sistema Autónomo (Off-Grid)</h2>
-                <p class="text-sm text-blue-200 text-center">Calcula paneles, baterías, regulador e inversor.</p>
-                <p class="text-xs mt-2 italic">Sin conexión a la red eléctrica.</p>
+<body>
+    <nav style="background: rgba(0,0,0,0.9); color: white; padding: 15px 50px; display: flex; justify-content: space-between; align-items: center; position: fixed; width: 100%; top: 0; z-index: 1000; backdrop-filter: blur(10px); border-bottom: 2px solid #FFD700; box-sizing: border-box;">
+        <div style="font-weight: bold; font-size: 1.4rem; letter-spacing: 2px; color: #ffffff;">SOLARVEN23</div>
+        <div>
+            <a href="guia.html" class="nav-link" style="color: #FFD700; text-decoration: none; font-size: 0.9rem; font-weight: 700; border: 2px solid #FFD700; padding: 8px 25px; border-radius: 25px; transition: 0.3s; letter-spacing: 1px;">
+                GUÍA DE USO
             </a>
-
-            <a href="sistema_conectado_red.html" 
-               class="flex flex-col items-center justify-center p-8 bg-green-600 hover:bg-green-700 text-white rounded-xl shadow-xl transition duration-300 transform hover:scale-[1.02] border-b-8 border-green-800">
-                <span class="text-5xl mb-3">⚡</span>
-                <h2 class="text-2xl font-bold mb-1">Sistema Conectado a la Red (On-Grid)</h2>
-                <p class="text-sm text-green-200 text-center">Dimensiona solo paneles e inversor de inyección.</p>
-                <p class="text-xs mt-2 italic">Con intercambio de energía a la red.</p>
-            </a>
-            
         </div>
+    </nav>
+
+    <div class="overlay" style="padding-top: 130px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; box-sizing: border-box; padding-bottom: 60px; background: rgba(0,0,0,0.4);">
         
-        <footer class="mt-10 text-center text-gray-400 border-t pt-4">
-            <p>&copy; Herramienta de Dimensionamiento Fotovoltaico</p>
+        <div class="welcome-header" style="text-align: center; margin-bottom: 40px; padding: 35px; background: rgba(0, 0, 0, 0.8); border-radius: 25px; backdrop-filter: blur(15px); border: 1px solid rgba(255,215,0,0.4); width: 90%; max-width: 750px; box-shadow: 0 0 30px rgba(0,0,0,0.5);">
+            <h1 style="font-size: 3.8rem; color: #ffffff; margin: 0; text-shadow: 0 0 20px rgba(255,255,255,0.3); letter-spacing: 4px; font-weight: 900;">
+                SOLARVEN23
+            </h1>
+            <p style="font-size: 1.9rem; color: #ffffff; font-weight: bold; margin-top: 15px; text-shadow: 2px 2px 5px rgba(0,0,0,1); font-style: italic; letter-spacing: 1px;">
+                ¡Diseña tu futuro energético hoy!
+            </p>
+        </div>
+
+        <div class="container" style="box-shadow: 0 20px 50px rgba(0,0,0,0.6);">
+            <h1 style="font-weight: 800;">Selecciona el Tipo de Sistema Fotovoltaico a Dimensionar</h1>
+            
+            <div class="button-group">
+                <a href="autonomo.html" class="button autonomous" style="font-weight: 700; letter-spacing: 1px;">
+                    SISTEMA FOTOVOLTAICO AUTÓNOMO 
+                </a>
+                <a href="red.html" class="button grid-tie" style="font-weight: 700; letter-spacing: 1px;">
+                    SISTEMA FOTOVOLTAICO CONECTADO A LA RED 
+                </a>
+            </div>
+            
+            <p class="note" style="color: #333; font-weight: 600; font-size: 1rem;">
+                El sistema autónomo  requiere baterías. <br>
+                El sistema conectado a la red  requiere un contador bidireccional.
+            </p>
+        </div>
+
+        <div class="info-section" style="display: flex; gap: 30px; margin-top: 50px; width: 95%; max-width: 1100px; flex-wrap: wrap; justify-content: center;">
+            
+            <div class="info-card" style="padding: 30px; border-radius: 20px; flex: 1; min-width: 320px; box-shadow: 0 15px 35px rgba(0,0,0,0.5); border-left: 10px solid #ff7300;">
+                <h3 style="color: #ff7300; margin-top: 0; font-size: 1.5rem; font-weight: 800; text-transform: uppercase;">¿Qué es un Sistema Autónomo?</h3>
+                <p style="color: #222; font-size: 1.05rem; line-height: 1.7; font-weight: 500;">Funciona de forma totalmente independiente. Utiliza <strong>baterías de ciclo profundo</strong> para el almacenamiento, garantizando energía en zonas rurales o donde el servicio eléctrico es inexistente.</p>
+            </div>
+
+            <div class="info-card" style="padding: 30px; border-radius: 20px; flex: 1; min-width: 320px; box-shadow: 0 15px 35px rgba(0,0,0,0.5); border-left: 10px solid #008170;">
+                <h3 style="color: #008170; margin-top: 0; font-size: 1.5rem; font-weight: 800; text-transform: uppercase;">¿Qué es un Sistema Conectado a la Red?</h3>
+                <p style="color: #222; font-size: 1.05rem; line-height: 1.7; font-weight: 500;">Sincronizado con la compañía eléctrica para <strong>anular o reducir tu factura</strong>. Es la opción más rentable para comercios y hogares urbanos que buscan eficiencia económica inmediata.</p>
+            </div>
+
+        </div>
+
+        <div style="margin-top: 80px; width: 90%; max-width: 1200px; display: flex; justify-content: space-around; flex-wrap: wrap; gap: 50px;">
+            
+            <div class="benefit-card" style="text-align: center; color: white; flex: 1; min-width: 280px;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#FFD700" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 25px;">
+                    <line x1="12" y1="1" x2="12" y2="23"></line>
+                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                </svg>
+                <h4 style="margin: 0; color: #FFD700; font-size: 1.3rem; text-transform: uppercase; letter-spacing: 2px; font-weight: 800;">Ahorro Inmediato</h4>
+                <p style="font-size: 1rem; opacity: 0.9; margin-top: 15px; line-height: 1.6; font-weight: 400;">Maximiza tu rentabilidad reduciendo los costos de energía desde el primer minuto.</p>
+            </div>
+
+            <div class="benefit-card" style="text-align: center; color: white; flex: 1; min-width: 280px;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#FFD700" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 25px;">
+                    <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path>
+                </svg>
+                <h4 style="margin: 0; color: #FFD700; font-size: 1.3rem; text-transform: uppercase; letter-spacing: 2px; font-weight: 800;">Sostenibilidad</h4>
+                <p style="font-size: 1rem; opacity: 0.9; margin-top: 15px; line-height: 1.6; font-weight: 400;">Únete a la generación distribuida y disminuye tu impacto ambiental de forma medible.</p>
+            </div>
+
+            <div class="benefit-card" style="text-align: center; color: white; flex: 1; min-width: 280px;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#FFD700" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 25px;">
+                    <rect x="2" y="7" width="16" height="10" rx="2" ry="2"></rect>
+                    <line x1="22" y1="11" x2="22" y2="13"></line>
+                </svg>
+                <h4 style="margin: 0; color: #FFD700; font-size: 1.3rem; text-transform: uppercase; letter-spacing: 2px; font-weight: 800;">Independencia</h4>
+                <p style="font-size: 1rem; opacity: 0.9; margin-top: 15px; line-height: 1.6; font-weight: 400;">Protege tu continuidad operativa frente a racionamientos o fallas en el suministro.</p>
+            </div>
+
+        </div>
+
+        <footer style="margin-top: 100px; padding: 40px; color: white; text-align: center; font-size: 1rem; width: 100%; border-top: 2px solid #FFD700;">
+            <p style="font-weight: 800; letter-spacing: 2px; text-transform: uppercase;">© 2025 SOLARVEN23 - Ingeniería Fotovoltaica Avanzada</p>
+            <p style="font-style: italic; opacity: 0.8; margin-top: 10px; color: #FFD700;">Impulsando la soberanía energética en Venezuela</p>
         </footer>
     </div>
-
 </body>
 </html>

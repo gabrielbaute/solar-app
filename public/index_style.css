@@ -10,7 +10,7 @@ body {
     text-align: center;
 
     /* Fondo con imagen */
-    background-image: url('src/img/LOGO.jpg');
+    background-image: url('/src/img/LOGO.jpg');
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
